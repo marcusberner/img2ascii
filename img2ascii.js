@@ -1,36 +1,68 @@
 (function () {
 
-	function convertToAscii(img, fontSize) {
+	if (!window.WebGLRenderingContext) return;
+
+	function hide(element) {
+		var style = element.getAttribute('style');
+		if (style && style !== '') {
+			element.setAttribute('data-original-style', style);
+		}
+		element.setAttribute('style', 'display:none;');
+	}
+
+	function show(element) {
+		var style = element.getAttribute('data-original-style');
+		if (!style) {
+			style = '';
+		}
+		element.setAttribute('style', style);
+	}
+
+	function getMatchingChar(data, x, y, width) {
+		var chars, r, g, b, alpha, darkness;
+		r = data[((width * y) + x) * 4];
+		g = data[((width * y) + x) * 4 + 1];
+		b = data[((width * y) + x) * 4 + 2];
+		alpha = data[((width * y) + x) * 4 + 3];
+		darkness = Math.round(alpha * ((255 * 3) - r - g - b) / 3 / 255);
+		chars = [ '&nbsp;', '-', '=', '#' ];
+		return chars[Math.min(chars.length - 1, Math.floor(darkness * chars.length / 255))];
+	}
+
+	function updateAsciiElement(img, asciiElement) {
+		var oldAscii, asciiId = img.getAttribute('data-ascii-id');
+		if (asciiId && asciiId !== '') {
+			oldAscii = document.getElementById(asciiId);
+			oldAscii.parentNode.removeChild(oldAscii);
+		} else {
+			asciiId = Math.round(Math.random() * 10000000).toString();
+			img.setAttribute('data-ascii-id', asciiId);
+		}
+		asciiElement.setAttribute('id', asciiId);
+		img.parentNode.insertBefore(asciiElement, img);
+	}
+
+	function convertToAscii(img, fontSize, firstTime) {
 
 		var
+			convert,
 			ctx,
-			matchChar,
 			charHeight = 1.005 * Math.round(fontSize * 6 / 8),
 			charWidth = 0.96 * fontSize * 5 / 8,
 			parent = img.parentNode,
 			imageClass,
 			canvasNode = document.createElement('canvas'),
 			asciiNode = document.createElement('div'),
-			innerAsciiNode = document.createElement('div');;
+			innerAsciiNode = document.createElement('div');
 
-		matchChar = function (data, x, y) {
-			var chars, r, g, b, alpha, darkness;
-			r = data[((img.clientWidth * y) + x) * 4];
-			g = data[((img.clientWidth * y) + x) * 4 + 1];
-			b = data[((img.clientWidth * y) + x) * 4 + 2];
-			alpha = data[((img.clientWidth * y) + x) * 4 + 3];
-			darkness = Math.round(alpha * ((255 * 3) - r - g - b) / 3 / 255);
-			chars = [ '&nbsp;', '-', '=', '#' ];
-			return chars[Math.min(chars.length - 1, Math.floor(darkness * chars.length / 255))];
-		};
-
-		imageClass = img.getAttribute("class");
+		imageClass = img.getAttribute('class');
 		if (imageClass) asciiNode.setAttribute('class', imageClass);
 		canvasNode.setAttribute('style', 'display:none;');
 		parent.insertBefore(canvasNode, img);
 		ctx = canvasNode.getContext('2d');
 
-		img.onload = function() {
+		convert = function() {
+			show(img);
 			var x, y, data, lines, line;
 			asciiNode.setAttribute('style', 'display:block;overflow:hidden;width:' + img.clientWidth + 'px;height:' + img.clientHeight + 'px;');
 			innerAsciiNode.setAttribute('style', 'font-family:monospace;width:99999px;font-size: ' + fontSize + 'px;line-height: ' + charHeight + 'px;letter-spacing:0px;');
@@ -42,21 +74,28 @@
 			for(y = 0; y <= (img.clientHeight - charHeight); y += charHeight) {
 				line = [];
 				for(x = 0; x <= (img.clientWidth - charWidth); x += charWidth) {
-					line.push(matchChar(data, Math.round(x), Math.round(y)));
+					line.push(getMatchingChar(data, Math.round(x), Math.round(y), img.clientWidth));
 				}
 				lines.push(line.join(''));
 			}
 			innerAsciiNode.innerHTML = lines.join('<br/>');
 			asciiNode.appendChild(innerAsciiNode);
 			parent.removeChild(canvasNode);
-			parent.insertBefore(asciiNode, img);
-			parent.removeChild(img);
+			updateAsciiElement(img, asciiNode);
+			hide(img);
+		};
+		if (firstTime === true) {
+			img.onload = function() {
+				window.addEventListener('resize', img2Ascii, true);
+				convert();
+			}
+		} else {
+			convert();
 		}
 
 	}
 
-	if (!window.WebGLRenderingContext) return;
-	document.addEventListener('DOMContentLoaded', function () {
+	function img2Ascii(firstTime) {
 		var i, shouldConvert, fontSize, images = document.getElementsByTagName('img');
 		for (i = 0; i < images.length; i++) {
 			shouldConvert = images[i].getAttribute('data-img2ascii');
@@ -64,8 +103,12 @@
 			fontSize = images[i].getAttribute('data-ascii-font-size');
 			if (fontSize) fontSize = parseInt(fontSize, 10);
 			else fontSize = 4;
-			convertToAscii(images[i], fontSize);
+			convertToAscii(images[i], fontSize, firstTime);
 		}
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		img2Ascii(true);
 	}, false);
 
 })();
