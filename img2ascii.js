@@ -19,7 +19,7 @@
 			b = data[((img.clientWidth * y) + x) * 4 + 2];
 			alpha = data[((img.clientWidth * y) + x) * 4 + 3];
 			darkness = Math.round(alpha * ((255 * 3) - r - g - b) / 3 / 255);
-			chars = [ '&nbsp;', '&#47;', '&#61', '#' ];
+			chars = [ '&nbsp;', '-', '=', '#' ];
 			return chars[Math.min(chars.length - 1, Math.floor(darkness * chars.length / 255))];
 		};
 
