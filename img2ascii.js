@@ -23,7 +23,6 @@
 			return chars[Math.min(chars.length - 1, Math.floor(darkness * chars.length / 255))];
 		};
 
-		asciiNode.setAttribute('style', 'display:block;overflow:hidden;font-family:monospace;font-size: ' + fontSize + 'px;line-height: ' + charHeight + 'px;letter-spacing:0px;');
 		imageClass = img.getAttribute("class");
 		if (imageClass) asciiNode.setAttribute('class', imageClass);
 		canvasNode.setAttribute('style', 'display:none;');
@@ -32,6 +31,7 @@
 
 		img.onload = function() {
 			var x, y, data, lines, line;
+			asciiNode.setAttribute('style', 'display:block;overflow:hidden;font-family:monospace;width:' + img.clientWidth + 'px;height:' + img.clientHeight + 'px;font-size: ' + fontSize + 'px;line-height: ' + charHeight + 'px;letter-spacing:0px;');
 			canvasNode.height = img.clientHeight;
 			canvasNode.width = img.clientWidth;
 			ctx.drawImage(img, 0, 0, img.clientWidth, img.clientHeight);
