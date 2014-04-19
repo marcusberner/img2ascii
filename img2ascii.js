@@ -62,7 +62,7 @@
 		ctx = canvasNode.getContext('2d');
 
 		convert = function() {
-			show(img);
+			if (firstTime !== true) show(img);
 			var x, y, data, lines, line;
 			asciiNode.setAttribute('style', 'display:block;overflow:hidden;width:' + img.clientWidth + 'px;height:' + img.clientHeight + 'px;');
 			innerAsciiNode.setAttribute('style', 'font-family:monospace;width:99999px;font-size: ' + fontSize + 'px;line-height: ' + charHeight + 'px;letter-spacing:0px;');
