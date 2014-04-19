@@ -5,12 +5,13 @@
 		var
 			ctx,
 			matchChar,
-			charHeight = Math.round(fontSize * 6 / 8),
-			charWidth = fontSize * 5 / 8,
+			charHeight = 1.005 * Math.round(fontSize * 6 / 8),
+			charWidth = 0.96 * fontSize * 5 / 8,
 			parent = img.parentNode,
 			imageClass,
 			canvasNode = document.createElement('canvas'),
-			asciiNode = document.createElement('div');
+			asciiNode = document.createElement('div'),
+			innerAsciiNode = document.createElement('div');;
 
 		matchChar = function (data, x, y) {
 			var chars, r, g, b, alpha, darkness;
@@ -31,7 +32,8 @@
 
 		img.onload = function() {
 			var x, y, data, lines, line;
-			asciiNode.setAttribute('style', 'display:block;overflow:hidden;font-family:monospace;width:' + img.clientWidth + 'px;height:' + img.clientHeight + 'px;font-size: ' + fontSize + 'px;line-height: ' + charHeight + 'px;letter-spacing:0px;');
+			asciiNode.setAttribute('style', 'display:block;overflow:hidden;width:' + img.clientWidth + 'px;height:' + img.clientHeight + 'px;');
+			innerAsciiNode.setAttribute('style', 'font-family:monospace;width:99999px;font-size: ' + fontSize + 'px;line-height: ' + charHeight + 'px;letter-spacing:0px;');
 			canvasNode.height = img.clientHeight;
 			canvasNode.width = img.clientWidth;
 			ctx.drawImage(img, 0, 0, img.clientWidth, img.clientHeight);
@@ -40,11 +42,12 @@
 			for(y = 0; y <= (img.clientHeight - charHeight); y += charHeight) {
 				line = [];
 				for(x = 0; x <= (img.clientWidth - charWidth); x += charWidth) {
-					line.push(matchChar(data, Math.round(x), y));
+					line.push(matchChar(data, Math.round(x), Math.round(y)));
 				}
 				lines.push(line.join(''));
 			}
-			asciiNode.innerHTML = lines.join('<br/>');
+			innerAsciiNode.innerHTML = lines.join('<br/>');
+			asciiNode.appendChild(innerAsciiNode);
 			parent.removeChild(canvasNode);
 			parent.insertBefore(asciiNode, img);
 			parent.removeChild(img);
@@ -57,7 +60,7 @@
 		var i, shouldConvert, fontSize, images = document.getElementsByTagName('img');
 		for (i = 0; i < images.length; i++) {
 			shouldConvert = images[i].getAttribute('data-img2ascii');
-			if (!shouldConvert && shouldConvert !== '') return;
+			if (!shouldConvert && shouldConvert !== '') continue;
 			fontSize = images[i].getAttribute('data-ascii-font-size');
 			if (fontSize) fontSize = parseInt(fontSize, 10);
 			else fontSize = 4;
